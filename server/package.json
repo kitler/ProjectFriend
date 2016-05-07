@@ -28,5 +28,11 @@
     "passport-google-oauth": "^1.0.0",
     "passport-jwt": "^2.0.0",
     "sequelize": "^3.22.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.4.5",
+    "should": "^8.3.1",
+    "supertest": "^1.2.0"
   }
 }

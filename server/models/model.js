@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt-nodejs')
-console.log("HERE@#$@#$#@$#23")
+
 module.exports = function(db, Sequelize) {
 	var User = db.define('User', {
 		name: {type: Sequelize.STRING},

@@ -3,6 +3,7 @@ const auth = require('./controllers/auth')
 
 const passportService = require('./services/passport')
 const passport = require('passport')
+const friends = require('./processes/friends.js')
 
 //const requireAuth = passport.authenticate('jwt', {session: false});
 const requireSignin = passport.authenticate('local', {session:false});
@@ -25,11 +26,14 @@ module.exports = function(app){
 	//signout
 
 	//=====friends=====
+	//accepts username in body
 
-	app.get('/user/activefriends', requireAuth, function(req, res){
-		res.send("YAY"+ req.user)
+	app.post('/user/friends/add', requireAuth, friends.sendAddRequest)
+	app.post('/user/friends/accept', requireAuth, friends.acceptRequest)
+
+	app.get('/', function(req, res){
+		res.send("YAY")
 	})
-
 	//get current friends list
 
 
