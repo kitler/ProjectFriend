@@ -5,7 +5,8 @@ const jwt = require('jsonwebtoken');
 const secret = require('../config').jwtSecret;
 const Sequelize = require('sequelize'); 
 const db = require('../config').DB;
-const User = db.import('../models/model')
+const badRequest = require('../config').badRequest;
+const User = db.import('../models/user_model')
 console.log(User)
 
 //All tokens will expire within 30 minutes unless they get new one
@@ -18,7 +19,6 @@ function tokenCreator(user){
 }
 //The following handles giving the user a JWT token on signin
 exports.signin = function(req, res, next){
-	console.log(req.body.username)
 	res.send({token: tokenCreator(req.body.username)})
 }
 
@@ -28,21 +28,25 @@ exports.localsignup = function(req, res, next){
 	const password = req.body.password;
 	const username = req.body.username;
 	const name = req.body.name;
+	const DOB = req.body.DOB
 
-	if(!email || !password || !username || !name){
-		return res.status(422).send({error: 'You must provide e-mail, username, name, and password'})
+	if(!email || !password || !username || !name|| !DOB){
+		return next(badRequest(422,'You must provide e-mail, username, name, and password'))
 	}
-	db.sync({logging: console.log}).then(function(){
+	db.sync().then(function(){
 		User.findOrCreate({where: {username: username}, defaults: {
 				email: email,
 				password: password,
-				name: name
+				name: name,
+				DOB: DOB
 			}}).spread(function(user, created){
 				if(!created){
-					return res.status(422).send({error: 'Username is in use'});
+					return next(badRequest(422, 'Username is in use'))
 				}
 
-				res.json({token: tokenCreator(user.username)});
+				res.status(200).json({token: tokenCreator(user.username)});
+			}).catch(function(e){
+				return next(badRequest(422, e))
 			})
 		
 			//The following will look for user with matching name

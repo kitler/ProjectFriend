@@ -1,7 +1,7 @@
 
 
 module.exports = function(db, DataType) {
-	const User = db.import('./model')
+	const User = db.import('./user_model')
 	var friend = db.define('Friend', {
 		usernameone: {
 			type: DataType.STRING,
@@ -25,15 +25,6 @@ module.exports = function(db, DataType) {
 			type: DataType.STRING,
 			allowNull: false
 		}
-	})/*, {
-		validate: {
-			bothUsernamesDiffer: function(){
-				if(this.usernameone === this.usernametwo){
-					throw new Error('Cannot create friend request on same user')
-				}
-			}
-		}
-	})*/
-
+	})
 	return friend;
 }

@@ -5,7 +5,7 @@ const ExtractJwt = require('passport-jwt').ExtractJwt;
 const bcrypt = require('bcrypt-nodejs');
 const db = require('../config').DB;
 const secret = require('../config').jwtSecret;
-const User = db.import('../models/model');
+const User = db.import('../models/user_model');
 
 const localOptions = {
 	usernameField: 'username'
@@ -17,9 +17,7 @@ const jwtOptions = {
 }
 
 const localLogin = new LocalStrategy(localOptions, function(username, password, done){
-		console.log("@#$R$@#$@#", username)
-		db.sync({logging: console.log}).then(function(){
-			console.log("@#$R$@#$@#", username)
+		db.sync().then(function(){
 			User.findOne({where: {username: username} }).then(function(user){
 				if(user === null){ 
 					return done(null, false, {message: 'User not Found'})
@@ -41,8 +39,7 @@ const localLogin = new LocalStrategy(localOptions, function(username, password, 
 })
 
 const jwtLogin = new JwtStrategy(jwtOptions, function(payload, done){
-	console.log(payload.username)
-	db.sync({logging: console.log}).then(function(){
+	db.sync().then(function(){
 		User.findOne({where: {username: payload.username} }).then(function(user){
 			if(user === null) {
 				return done(null, false, {message: 'User not Found'})

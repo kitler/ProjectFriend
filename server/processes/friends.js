@@ -11,12 +11,12 @@ The following file holds all functions for:
 //Friend statuses PENDING, CONFIRMED, DECLINED, SENT
 const db = require('../config').DB;
 const Friend = db.import('../models/friend_model')
+const User = db.import('../models/user_model')
 const badRequest = require('../config').badRequest
-
-var acceptUpdateRecord = function(usernameone, usernametwo, res){
-	Friend.update({
-		status: "ACCEPTED"
-	},{
+const async = require('async')
+const friendsArrayConverter = require('./utils/arrToProfile_util')
+const whereUpdateStatus = function(usernameone, usernametwo){
+	var where = {
 		where: {
 			$or:[{
 				usernameone: usernameone,
@@ -26,47 +26,57 @@ var acceptUpdateRecord = function(usernameone, usernametwo, res){
 				usernametwo: usernameone
 			}]
 		}
-	}).then(function(arr){
+	}
+	return where;
+}
+
+var acceptUpdateRecord = function(usernameone, usernametwo, res){
+	Friend.update({
+		status: "ACCEPTED"
+	},whereUpdateStatus(usernameone,usernametwo)).then(function(arr){
 		if(arr.length > 0){
 			return res.status(200).send({"success":"Friend request accepted"})
 		}
 	}).catch(function(err){
-		badRequest(err, res)
+		return next(badRequest(422, err))
 	})
 }
 
 var declineUpdateRecord = function(usernameone, usernametwo, res){
 	Friend.update({
 		status: "DECLINED"
-	},{
-		where: {
-			$or:[{
-				usernameone: usernameone,
-				usernametwo: usernametwo
-			},{
-				usernameone: usernametwo,
-				usernametwo: usernameone
-			}]
-		}
-	}).then(function(arr){
+	},whereUpdateStatus(usernameone,usernametwo)).then(function(arr){
 		if(arr.length > 0){
 			return res.status(200).send({"success":"Friend request declined"})
 		}
 	}).catch(function(err){
-		badRequest(err, res)
+		return next(badRequest(422, err))
 	})
 }
 
+var checkIfPending = function(usernameone, usernametwo, res, cb){
+	Friend.find({where: {
+				usernameone: usernameone,
+				usernametwo: usernametwo,
+				status: "PENDING"
+		}}).then(function(friend){
+			if(friend === null){
+				return next(badRequest(422, "request not found"))
+			}
+			cb(usernameone, usernametwo, res)
+			
+		}).catch(function(err){
+			return next(badRequest(422, err))
+		})
+}
 
+//This function will take two usernames and make a friend request
+//it will create an AB/BA relationship
 exports.sendAddRequest = function(req, res, next){
-
-	console.log("MEOWERSFASFASFS", req.user.username)
 	const usernameone = req.user.username;
-	//req.user;
 	const usernametwo = req.body.username;
 
-	db.sync({logging: console.log}).then(function(){
-		console.log("Database connected: About to add friend")
+	db.sync().then(function(){
 		Friend.findOrCreate({where: {
 			usernameone: usernameone,
 			usernametwo: usernametwo
@@ -74,9 +84,9 @@ exports.sendAddRequest = function(req, res, next){
 			status: "SENT"
 		}}).spread(function(user, created){
 			if(!created){
-				return res.status(422).send({error: 'User has already requested friends with person'});
+				return next(badRequest(422,"User has already requested friends with person"));
 			}else if(user === null){
-				return res.status(422).send({error: 'User does not exist'});
+				return next(badRequest(422,'User does not exist'));
 			}
 
 			Friend.create({
@@ -98,20 +108,9 @@ exports.acceptRequest = function(req, res, next){
 	const usernametwo = req.body.username;
 
 	db.sync().then(function(){
-		Friend.find({where: {
-				usernameone: usernameone,
-				usernametwo: usernametwo,
-				status: "PENDING"
-		}}).then(function(friend){
-			console.log("u1", usernameone, "u2", usernametwo)
-			if(friend === null){
-				return res.status(422).send({error: 'Request not found'});
-			}
-			acceptUpdateRecord(usernameone,usernametwo, res)
-			
-		}).catch(function(err){
-			badRequest(err, res)
-		})
+		checkIfPending(usernameone, usernametwo, res, acceptUpdateRecord)
+	}).catch(function(e){
+		return next(badRequest(422, e))
 	})
 }
 
@@ -121,22 +120,43 @@ exports.declineRequest = function(req, res, next){
 	const usernametwo = req.body.username;
 
 	db.sync().then(function(){
-		Friend.find({where: {
-				usernameone: usernameone,
-				usernametwo: usernametwo,
-				status: "PENDING"
-		}}).then(function(friend){
-			console.log("u1", usernameone, "u2", usernametwo)
-			if(friend === null){
-				return res.status(422).send({error: 'Request not found'});
-			}
-			declineUpdateRecord(usernameone,usernametwo, res)
-			
-		}).catch(function(err){
-			badRequest(err, res)
+		checkIfPending(usernameone, usernametwo, res, declineUpdateRecord)
+	}).catch(function(e){
+			return next(badRequest(422, e))
+	})
+}
+
+exports.getFriends = function(req, res, next){
+	const usernameone = req.user.username;
+	//req.user;
+	db.sync().then(function(){
+		Friend.findAll({where:{
+			usernameone: usernameone,
+			status: "ACCEPTED"
+		}}).then(function(friends){
+			friendsArrayConveter(friends, res);
+		}).catch(function(e){
+			return next(badRequest(422, e))
+		})
+	})
+
+}
+
+exports.getPending = function(req, res, next){
+	db.sync().then(function(){
+		Friend.findAll({where:{
+			usernameone: usernameone,
+			status: "PENDING"
+		}}).then(function(friends){
+			friendsArrayConveter(friends, res, next);
+		}).catch(function(e){
+			return next(badRequest(422, e))
 		})
 	})
 }
+
+//This runs async map to connect to database to pull profiles for each friend
+//Takes friends and res object
 
 
 
