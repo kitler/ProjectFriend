@@ -38,7 +38,7 @@ var acceptUpdateRecord = function(usernameone, usernametwo, res){
 			return res.status(200).send({"success":"Friend request accepted"})
 		}
 	}).catch(function(err){
-		return next(badRequest(422, err))
+		return next(err)
 	})
 }
 
@@ -50,7 +50,7 @@ var declineUpdateRecord = function(usernameone, usernametwo, res){
 			return res.status(200).send({"success":"Friend request declined"})
 		}
 	}).catch(function(err){
-		return next(badRequest(422, err))
+		return next(err)
 	})
 }
 
@@ -61,12 +61,12 @@ var checkIfPending = function(usernameone, usernametwo, res, cb){
 				status: "PENDING"
 		}}).then(function(friend){
 			if(friend === null){
-				return next(badRequest(422, "request not found"))
+				return next(new Error("request not found"))
 			}
 			cb(usernameone, usernametwo, res)
 			
 		}).catch(function(err){
-			return next(badRequest(422, err))
+			return next(err)
 		})
 }
 
@@ -84,9 +84,9 @@ exports.sendAddRequest = function(req, res, next){
 			status: "SENT"
 		}}).spread(function(user, created){
 			if(!created){
-				return next(badRequest(422,"User has already requested friends with person"));
+				return next(new Error("User has already requested friends with person"));
 			}else if(user === null){
-				return next(badRequest(422,'User does not exist'));
+				return next(new Error('User does not exist'));
 			}
 
 			Friend.create({
@@ -110,7 +110,7 @@ exports.acceptRequest = function(req, res, next){
 	db.sync().then(function(){
 		checkIfPending(usernameone, usernametwo, res, acceptUpdateRecord)
 	}).catch(function(e){
-		return next(badRequest(422, e))
+		return next(e)
 	})
 }
 
@@ -122,7 +122,7 @@ exports.declineRequest = function(req, res, next){
 	db.sync().then(function(){
 		checkIfPending(usernameone, usernametwo, res, declineUpdateRecord)
 	}).catch(function(e){
-			return next(badRequest(422, e))
+			return next(e)
 	})
 }
 
@@ -136,7 +136,7 @@ exports.getFriends = function(req, res, next){
 		}}).then(function(friends){
 			friendsArrayConveter(friends, res);
 		}).catch(function(e){
-			return next(badRequest(422, e))
+			return next(e)
 		})
 	})
 
@@ -150,7 +150,7 @@ exports.getPending = function(req, res, next){
 		}}).then(function(friends){
 			friendsArrayConveter(friends, res, next);
 		}).catch(function(e){
-			return next(badRequest(422, e))
+			return next(e)
 		})
 	})
 }

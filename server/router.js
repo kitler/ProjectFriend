@@ -8,6 +8,7 @@ const avail = require('./processes/availability.js')
 //const requireAuth = passport.authenticate('jwt', {session: false});
 const requireSignin = passport.authenticate('local', {session:false});
 const requireAuth = passport.authenticate('jwt', {session: false});
+const errorHandler = require('./errors').errorHandler
 module.exports = function(app){
 	//see if a user with the given email exists
 	//app.get('/', requireAuth, function(req, res){
@@ -47,7 +48,7 @@ module.exports = function(app){
 	//post send request to hang
 	//put decline request to hang
 	//put accept request to hang
-	app.get('/user/availability', requireAuth, avail.getPossibleMatches)
+	app.post('/user/availability/list', requireAuth, avail.getPossibleMatches)
 
 	//get pending friends requests
 
@@ -57,11 +58,7 @@ module.exports = function(app){
 
 	//decline friends request
 
-	app.use(function(err, req, res, next) {
-  		//do logging and user-friendly error message display
-  		console.log('Here')
-  		res.status(err.code).send({status:err.code, message: err.error, type:'internal'});
-	})
+	app.use(errorHandler)
 
 	//app.post('/signin', requireSignin, Auth.signin)
 }

@@ -26,7 +26,6 @@ module.exports = function(db, DataType) {
 		accepted: {
 			allowNull: false,
 		}
-		
 	})
 
 	return model;

@@ -1,5 +1,5 @@
 module.exports = function(db, DataType) {
-	const User = db.import('./user_model')
+	const User = db.import('../user_model')
 	var friend = db.define('User_Availability', {
 		username:{
 			type: DataType.STRING,
@@ -19,6 +19,13 @@ module.exports = function(db, DataType) {
 		},
 		globalMatch:{
 			type: DataType.BOOLEAN,
+			allowNull: false
+		},
+		city: {
+			type: DataType.STRING
+		},
+		title: {
+			type: DataType.STRING,
 			allowNull: false
 		}
 

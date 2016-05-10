@@ -8,18 +8,18 @@ const db = require('../config').DB;
 const badRequest = require('../config').badRequest;
 const User = db.import('../models/user_model')
 console.log(User)
+const errors = require('../errors').Auth
 
 //All tokens will expire within 30 minutes unless they get new one
 //The following function creates a JWT given a User model 
 function tokenCreator(user){
 	const cTime = new Date().getTime();
 	const exTime = new Date(cTime + 30*60000);
-	console.log("username", user)
 	return jwt.sign({username: user, iat: cTime}, secret);
 }
 //The following handles giving the user a JWT token on signin
 exports.signin = function(req, res, next){
-	res.send({token: tokenCreator(req.body.username)})
+	res.status(200).json({token: tokenCreator(req.body.username)})
 }
 
 //The following handles local signup
@@ -31,7 +31,7 @@ exports.localsignup = function(req, res, next){
 	const DOB = req.body.DOB
 
 	if(!email || !password || !username || !name|| !DOB){
-		return next(badRequest(422,'You must provide e-mail, username, name, and password'))
+		return next(errors.missingSignUpParameters)
 	}
 	db.sync().then(function(){
 		User.findOrCreate({where: {username: username}, defaults: {
@@ -41,15 +41,26 @@ exports.localsignup = function(req, res, next){
 				DOB: DOB
 			}}).spread(function(user, created){
 				if(!created){
-					return next(badRequest(422, 'Username is in use'))
+					return next(422, errors.userNameTaken)
 				}
 
-				res.status(200).json({token: tokenCreator(user.username)});
+				res.status(200).send({token: tokenCreator(user.username)});
 			}).catch(function(e){
-				return next(badRequest(422, e))
+				return next(e)
 			})
 		
 			//The following will look for user with matching name
 			
 		})
+}
+
+exports.controlledResource = (req, res, next)=>{
+	const authUser = req.body.userNameTaken;
+	const requestedUser = req.params.user
+
+	if(authUser !== requestedUser){
+		return next(errors.unauthorizedAccess)
+	}else{
+		next()
+	}
 }

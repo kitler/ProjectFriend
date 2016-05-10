@@ -1,10 +1,14 @@
+"use strict"
+
 const db = require('../config').DB;
-const Friend = db.import('../models/friend_model')
-const Availability = db.import('../models/availability/availabilityUser_model')
-const User = db.import('../models/user_model')
-const badRequest = require('../config').badRequest
-const async = require('async')
-const friendsArrayConverter = require('./utils/arrToProfile_util')
+const errors = require('../errors').Availability
+const Friend = db.import('../models/friend_model');
+const Availability = db.import('../models/availability/availabilityUser_model');
+const User = db.import('../models/user_model');
+const badRequest = require('../config').badRequest;
+const async = require('async');
+const ArrayConverter = require('./utils/arrToProfile_util').availArrayConveter;
+const moment = require('moment');
 
 //add availability requires user to be authed and 
 // +provide start date
@@ -16,64 +20,93 @@ exports.addAvailability = function(req, res, next){
 	const username = req.user.username;
 	const startTime = req.body.startTime;
 	const endTime = req.body.endTime;
+	const title = req.body.title;
 	//const availType = req.body.availType;
-
-	db.sync().then(function(){
-		Availability.findOrCreate({where: {
-				username: username,
-				startTime:{
-					$lte: endTime
-				},
-				endTime: {
-					$gte: startTime
+	validateEntry(startTime, endTime).then(()=>{
+		db.sync().then(function(){
+			Availability.findOrCreate({where: {
+					username: username,
+					startTime:{
+						$lte: endTime
+					},
+					endTime: {
+						$gte: startTime
+					}
+				}, defaults:{
+					username: username,
+					startTime: startTime,
+					endTime: endTime,
+					globalMatch: false,
+					title: title
 				}
-			}, defaults:{
-				username: username,
-				startTime: startTime,
-				endTime: endTime,
-				globalMatch: false
-			}
-		}).spread(function(availability, created){
-			if(!created){
-				return next(badRequest(422,"Overlapping availability"));
-			}
-			return res.status(200).send({success: "Succesfully added availability"}); 
-		}).catch(function(err){
-			return next(badRequest(422, err));
+			}).spread(function(availability, created){
+				if(!created){
+					return next(errors.overlappingAvailability);
+				}
+				return res.status(200).send({success: "Succesfully added availability"}); 
+			}).catch(function(err){
+				return next(err);
+			})
+		
 		})
-	
+	}).catch((err)=>{
+		next(err);
 	})
 
 }
 
-exports.getOverlapTimes = function(req, res, next){
+exports.getPossibleMatches = function(req, res, next){
 	//(StartA <= EndB) and (EndA >= StartB)
 	const username = req.user.username;
 	const startTime = req.body.startTime;
 	const endTime = req.body.endTime;
 	//const availType = req.body.availType;
-
-	db.sync().then(function(){
-		Availability.findAll({where: {
-				username: {
-					$not: username,
-				},
-				startTime:{
-					$lte: endTime
-				},
-				endTime: {
-					$gte: startTime
+	validateEntry(startTime, endTime).then(()=>{
+		db.sync().then(function(){
+			Availability.findAll({where: {
+					username: {
+						$not: username,
+					},
+					startTime:{
+						$lte: endTime
+					},
+					endTime: {
+						$gte: startTime
+					}
 				}
-			}
-		}).then(function(results, created){
-			if(results.length > 0){
-				return next(badRequest(422,"There was no matching times"));
-			}
-			return availArrayConverter(results,res,next);
-		}).catch(function(err){
-			return next(badRequest(422, err));
+			}).then(function(results, created){
+				
+
+				if(results.length === 0){
+					return next(errors.noMatchingAvailabilities);
+				}
+				return ArrayConverter(results,res,next);
+			}).catch(function(err){
+				return next(err);
+			})
+		
 		})
-	
+	}).catch((err)=>{
+		next(err);
+	})
+}
+
+
+function validateEntry(startTime, endTime){
+	return new Promise((resolve, reject)=>{
+
+		//Check to see if start and end are valid
+		if(startTime === null || endTime === null){
+			reject(errors.nullInputDates)
+		}
+		let newStart = moment(startTime)
+		let newEnd = moment(endTime)
+
+		if(newEnd.isBefore(newStart)){
+			reject(errors.endIsBeforeStart)
+		}else{
+			resolve()
+		}
 	})
 
 }
