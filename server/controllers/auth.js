@@ -1,6 +1,6 @@
 //Written by Stephen Schroeder
 //
-
+"use strict"
 const jwt = require('jsonwebtoken');
 const secret = require('../config').jwtSecret;
 const Sequelize = require('sequelize'); 
@@ -19,7 +19,10 @@ function tokenCreator(user){
 }
 //The following handles giving the user a JWT token on signin
 exports.signin = function(req, res, next){
-	res.status(200).json({token: tokenCreator(req.body.username)})
+	let user = req.user
+	req.status = 200;
+	req.data = {token: tokenCreator(user.username)};
+	next()
 }
 
 //The following handles local signup
@@ -44,7 +47,8 @@ exports.localsignup = function(req, res, next){
 					return next(422, errors.userNameTaken)
 				}
 
-				res.status(200).send({token: tokenCreator(user.username)});
+				req.data = {token: tokenCreator(user.username)};
+				next()
 			}).catch(function(e){
 				return next(e)
 			})

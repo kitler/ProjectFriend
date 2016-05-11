@@ -9,6 +9,7 @@ const username = require('../testConfig').workingUsername1;
 const password = require('../testConfig').workingPassword1;
 const username2 = require('../testConfig').workingUsername2;
 const password2 = require('../testConfig').workingPassword2;
+const username3 = require('../testConfig').workingUsername3;
 const availUtil = require('./utils/avail_test_helpers')
 const testTimes = availUtil.getTestingTimes();
 const errors = require('../errors').Availability
@@ -22,16 +23,6 @@ describe('Availability:', function () {
 	let server;
 	let user1Token;
 	let user2Token;
-	before((done)=>{
-		Promise.all([
-				availUtil.removeTestRecord(username, testTimes.startDate1, testTimes.endDate1),
-				availUtil.removeTestRecord(username2, testTimes.startDate2, testTimes.endDate2)
-		]).then(()=>{
-				done()
-		}).catch((e)=>{
-				done(e)
-		})
-	})
 
 	beforeEach(function (done) {
 		server = require('../index');
@@ -51,7 +42,7 @@ describe('Availability:', function () {
 					password: password
 				})
 				.end(function(err, res){
-					user1Token = res.body.token;
+					user1Token = res.body.data.token;
 					done()
 				})
 		})
@@ -104,9 +95,11 @@ describe('Availability:', function () {
 		before(function(done){
 			Promise.all([
 				availUtil.addTestRecord(username, testTimes.startDate1, testTimes.endDate1),
-				availUtil.addTestRecord(username2, testTimes.startDate2, testTimes.endDate2)
+				availUtil.addTestRecord(username2, testTimes.startDate2, testTimes.endDate2),
+				availUtil.addTestRecord(username3, testTimes.startDate2, testTimes.endDate2)
 			]).then(()=>{
 					availUtil.getMatchingCount(username, testTimes.startDate1, testTimes.endDate1).then((count)=>{
+						console.log(count)
 						anticipatedCount = count;
 						done()
 					}).catch((e)=>{
@@ -130,23 +123,24 @@ describe('Availability:', function () {
 						done(e)
 					}else{
 						let results = r.body.results
-						expect(results.length, "Array size incorrect").to.equal(1)
+						expect(results.length, "Array size incorrect").to.equal(anticipatedCount)
 						results.should.contain.a.thing.with.property('username',username2)
 						done()
 					}
 				})
 
 		})
-		/*after((done)=>{
+		after((done)=>{
 			Promise.all([
 				availUtil.removeTestRecord(username, testTimes.startDate1, testTimes.endDate1),
-				availUtil.removeTestRecord(username2, testTimes.startDate2, testTimes.endDate2)
+				availUtil.removeTestRecord(username2, testTimes.startDate2, testTimes.endDate2),
+				availUtil.removeTestRecord(username3, testTimes.startDate2, testTimes.endDate2)
 			]).then(()=>{
 				done()
 			}).catch((e)=>{
 				done(e)
 			})
-		})*/
+		})
 
 		it('rejects request when poorly formatted: incorrect dates, happened in past, etc',function(done){
 			request(server)

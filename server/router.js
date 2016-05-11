@@ -1,6 +1,6 @@
 //Handle all routes here
 const auth = require('./controllers/auth')
-
+const response = require('./controllers/response')
 const passportService = require('./services/passport')
 const passport = require('passport')
 const friends = require('./processes/friends.js')
@@ -16,8 +16,8 @@ module.exports = function(app){
 	//})
 	//app.post('/signup', Auth.signup)
 
-	app.post('/auth/local/signin', requireSignin, auth.signin);
-	app.post('/auth/local/signup', auth.localsignup);
+	app.post('/auth/local/signin', requireSignin, auth.signin, response.send);
+	app.post('/auth/local/signup', auth.localsignup, response.send);
 
 
 	//signup
@@ -42,13 +42,13 @@ module.exports = function(app){
 
 
 	////======Availability======
-	app.post('/user/availability', requireAuth, avail.addAvailability)
+	app.post('/user/availability', requireAuth, avail.addAvailability, response.send)
 
 	//get possible matches
 	//post send request to hang
 	//put decline request to hang
 	//put accept request to hang
-	app.post('/user/availability/list', requireAuth, avail.getPossibleMatches)
+	app.post('/user/availability/list', requireAuth, avail.getPossibleMatches, response.send)
 
 	//get pending friends requests
 

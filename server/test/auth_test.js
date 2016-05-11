@@ -38,7 +38,7 @@ describe('authentication', function () {
         	if(e){
         		done(e)
         	}else{
-        		let results = r.body;
+        		let results = r.body.data;
         		expect(results).to.have.property('token')
         		done()
         	}

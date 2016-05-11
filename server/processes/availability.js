@@ -43,7 +43,10 @@ exports.addAvailability = function(req, res, next){
 				if(!created){
 					return next(errors.overlappingAvailability);
 				}
-				return res.status(200).send({success: "Succesfully added availability"}); 
+
+				req.data = availability;
+				return next()
+				//return res.status(200).send({success: "Succesfully added availability"}); 
 			}).catch(function(err){
 				return next(err);
 			})
@@ -75,12 +78,16 @@ exports.getPossibleMatches = function(req, res, next){
 					}
 				}
 			}).then(function(results, created){
-				
-
 				if(results.length === 0){
 					return next(errors.noMatchingAvailabilities);
 				}
-				return ArrayConverter(results,res,next);
+				ArrayConverter(results).then((r)=>{
+					console.log("meowmeowowmeow", typeof r)
+					req.data = r;
+					next();
+				}).catch((e)=>{
+					next(e)
+				})
 			}).catch(function(err){
 				return next(err);
 			})

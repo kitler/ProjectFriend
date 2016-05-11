@@ -11,9 +11,15 @@ exports.friendsArrayConveter = function(arr, res, next){
 	})
 }
 
-exports.availArrayConveter = function(arr, res, next){
-	async.map(arr, getUserProfileAvail,function(e, r){
-		responseCreator(e,r,res,next)
+exports.availArrayConveter = function(arr){
+	return new Promise((resolve, reject)=>{
+		async.map(arr, getUserProfileAvail,function(e, r){
+			if(r !== null){
+				resolve(r)
+			}else{
+				reject(e)
+			}
+		})
 	})
 }
 
@@ -34,7 +40,7 @@ function getUserProfileAvail(item, callback){
 			delete profile.dataValues.password;
 			profile.dataValues.event = {}
 			profile.dataValues.event.startTime = item.startTime;
-			profile.dataValues.event.endTime = item.endTime;
+			profile.dataValues.event.endTime =  item.endTime;
 			callback(null, profile);
 		}).catch(function(e){
 			callback(e);
@@ -43,13 +49,12 @@ function getUserProfileAvail(item, callback){
 }
 
 
-function responseCreator(e,r,res,next){
+function responseCreator(e,r){
 	if(r !== null){
-		let matches = {}
-		matches.results = r
-		return res.status(200).json(matches);
+		req.data = r
+		console.log("meowMEOWMEOWMEOW", typeof req.data)
 	}else if(e !== null){
-		return next(422, e);
+		return next(badRequest(422, e));
 	}
 	
 }
