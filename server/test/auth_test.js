@@ -28,7 +28,7 @@ describe('authentication', function () {
   describe('local login', function(){
     it('gives user token after succesful login', function(done){
       request(server)
-        .post('/auth/local/signin')
+        .post('/api/v1/auth/local')
         .send({
           username: usernameW,
           password: passwordW
@@ -68,29 +68,29 @@ describe('authentication', function () {
     var reqBody = {username: username,password: password,email: 'test@12345.com',DOB: "1991-12-19",name: "Stephen Schroeder"}
     it('allows user to signup when passed required information',function(done){
       request(server)
-        .post('/auth/local/signup')
+        .post('/api/v1/user')
         .send(reqBody)
-        .expect(200, done)
+        .expect(201, done)
     })
     it('rejects request when not provided username, password, name, or DOB',function(done){
       request(server)
-        .post('/auth/local/signup')
+        .post('/api/v1/user')
         .send({username: null ,password: password,email: 'test@12345.com',DOB: "1991-12-19",name: "Stephen Schroeder"})
         .expect(422, errorMsgCreator(errors.missingSignUpParameters))
       request(server)
-        .post('/auth/local/signup')
+        .post('/api/v1/user')
         .send({username: username, password: null ,email: 'test@12345.com',DOB: "1991-12-19",name: "Stephen Schroeder"})
         .expect(422, errorMsgCreator(errors.missingSignUpParameters)) 
       request(server)
-        .post('/auth/local/signup')
+        .post('/api/v1/user')
         .send({username: username, password: null ,email: 'test@12345.com',DOB: "1991-12-19",name: "Stephen Schroeder"})
         .expect(422, errorMsgCreator(errors.missingSignUpParameters))
       request(server)
-        .post('/auth/local/signup')
+        .post('/api/v1/user')
         .send({username: username ,password: password,email: null,DOB: "1991-12-19",name: "Stephen Schroeder"})
         .expect(422, errorMsgCreator(errors.missingSignUpParameters))
       request(server)
-        .post('/auth/local/signup')
+        .post('/api/v1/user')
         .send({username: username, password: password ,email: 'test@12345.com',DOB: null ,name: "Stephen Schroeder"})
         .expect(422, errorMsgCreator(errors.missingSignUpParameters), done)
     })

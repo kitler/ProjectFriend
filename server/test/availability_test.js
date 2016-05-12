@@ -36,7 +36,7 @@ describe('Availability:', function () {
 	describe('post to /availability adding', function(){
 		beforeEach(function(done){
 			 request(server)
-				.post('/auth/local/signin')
+				.post('/api/v1/auth/local')
 				.send({
 					username: username,
 					password: password

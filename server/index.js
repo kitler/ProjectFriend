@@ -3,9 +3,17 @@ const http = require('http')
 const Router = require('./router.js')
 const app = express()
 const bodyParser = require('body-parser')
+const auth = require('./controllers/auth')
+const user = require('./controllers/user')
+const errorHandler = require('./middleware/errorHandler').errorHandler
 
 app.use(bodyParser.json({type: '*/*'}))
-Router(app)
+
+app.use('/api/v1/auth', auth)
+app.use('/api/v1/user', user)
+
+app.use(errorHandler)
+//Router(app)
 
 const port = process.env.PORT || 3090
 const server = http.createServer(app);
