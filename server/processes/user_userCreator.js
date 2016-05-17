@@ -6,7 +6,7 @@ const tokenCreator = require('./auth_tokenCreator')
 const Sequelize = require('sequelize'); 
 const db = require('../config').DB;
 const User = db.import('../models/user_model')
-const errors = require('../errors').Auth;
+const errors = require('../middleware/errorHandler').Auth;
 
 
 module.exports = function(username, password, email, name, dob){

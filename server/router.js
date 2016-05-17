@@ -8,7 +8,7 @@ const avail = require('./processes/availability.js')
 //const requireAuth = passport.authenticate('jwt', {session: false});
 const requireSignin = passport.authenticate('local', {session:false});
 const requireAuth = passport.authenticate('jwt', {session: false});
-const errorHandler = require('./errors').errorHandler
+const errorHandler = require('../middleware/errors').errorHandler
 module.exports = function(app){
 	//see if a user with the given email exists
 	//app.get('/', requireAuth, function(req, res){

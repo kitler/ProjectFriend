@@ -1,7 +1,7 @@
 "use strict"
 
 const db = require('../config').DB;
-const errors = require('../errors').Availability
+const errors = require('../middleware/errors').Availability
 const Friend = db.import('../models/friend_model');
 const Availability = db.import('../models/availability/availabilityUser_model');
 const User = db.import('../models/user_model');
@@ -65,34 +65,7 @@ exports.getPossibleMatches = function(req, res, next){
 	const endTime = req.body.endTime;
 	//const availType = req.body.availType;
 	validateEntry(startTime, endTime).then(()=>{
-		db.sync().then(function(){
-			Availability.findAll({where: {
-					username: {
-						$not: username,
-					},
-					startTime:{
-						$lte: endTime
-					},
-					endTime: {
-						$gte: startTime
-					}
-				}
-			}).then(function(results, created){
-				if(results.length === 0){
-					return next(errors.noMatchingAvailabilities);
-				}
-				ArrayConverter(results).then((r)=>{
-					console.log("meowmeowowmeow", typeof r)
-					req.data = r;
-					next();
-				}).catch((e)=>{
-					next(e)
-				})
-			}).catch(function(err){
-				return next(err);
-			})
-		
-		})
+	
 	}).catch((err)=>{
 		next(err);
 	})

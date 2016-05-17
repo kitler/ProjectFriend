@@ -3,8 +3,8 @@ const Availability = {
 	overlappingAvailability: new Error("Overlapping availability"),
 	noMatchingAvailabilities: new Error("There was no matching times"),
 	nullInputDates: new Error("Start date nor end date cannot be null"),
-	endIsBeforeStart: new Error("End Date Cannot Be Before Start")
-
+	endIsBeforeStart: new Error("End Date Cannot Be Before Start"),
+	unauthorizedAccess: new Error('User is not authorized to access this resource')
 }
 
 
@@ -33,7 +33,8 @@ const errors422 = [
 ]
 
 const errors401 = [
-	Auth.unauthorizedAccess
+	Auth.unauthorizedAccess,
+	Availability.unauthorizedAccess
 ]
 
 exports.errorHandler = (err, req, res, next)=>{

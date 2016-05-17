@@ -1,5 +1,6 @@
 //Written by Stephen Schroeder
 //The following are helpers for testing availability
+"use strict"
 const moment = require('moment')
 const dateFormat = "YYYY-MM-DD HH:MM:ss"
 const db = require('../../config').DB;
@@ -67,7 +68,7 @@ exports.addTestRecord = function(username, startTime, endTime, done){
 						title: "title"
 					}
 				}).spread(function(availability, created){
-					return resolve()
+					return resolve(availability)
 				}).catch(function(err){
 					console.log(err)
 					return reject("Error", err);

@@ -1,16 +1,18 @@
 const express = require('express')
 const http = require('http')
-const Router = require('./router.js')
+//const Router = require('./router.js')
 const app = express()
 const bodyParser = require('body-parser')
 const auth = require('./controllers/auth')
 const user = require('./controllers/user')
+const availability = require('./controllers/availability')
 const errorHandler = require('./middleware/errorHandler').errorHandler
 
 app.use(bodyParser.json({type: '*/*'}))
-
+app.set('json spaces', 2)
 app.use('/api/v1/auth', auth)
 app.use('/api/v1/user', user)
+app.use('/api/v1/user/availability', availability)
 
 app.use(errorHandler)
 //Router(app)
