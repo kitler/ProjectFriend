@@ -6,52 +6,23 @@ const errors = require('../middleware/errorHandler').Availability
 const db = require('../config').DB;
 const Availability = db.import('../models/availability/availabilityUser_model');
 const User = db.import('../models/user_model');
-const accessValidator = require('./auth_validateAccess')
+const findAvail = require('./avail_findAvail');
+const accessValidator = require('./avail_validateAccess')
 const async = require('async')
 module.exports = function(username, availID){
 	return new Promise((resolve, reject)=>{
-		db.sync().then(function(){
-			findAvail(username, availID).then((AvailObj)=>{
-				findMatches(AvailObj.username, AvailObj.dataValues.startTime, AvailObj.dataValues.endTime).then((matchList)=>{
-					ArrayConverter(matchList).then((completeData)=>{
-						resolve(completeData)
-					}).catch((e)=>{
-						reject(e)
-					})
-				}).catch((e)=>{
-					reject(e)
-				})
-			}).catch((e)=>{
-				reject(e)
-			})
-		}).catch((e)=>{
-			reject(e)
-		})
-	})
-}
-
-function findAvail(username, availID){
-	return new Promise((resolve, reject)=>{
-		db.sync().then(function(){
-			Availability.findOne({where:{
-				id: availID
-			}}).then((result)=>{
-				console.log("@@@@@@@@@@@@", typeof accessValidator)
-				accessValidator(username, result.username).then(()=>{
-					resolve(result)
-				}).catch((e)=>{
-				reject(e)
-				})
-			}).catch((e)=>{
-				reject(e)
-			})
-		})
+		db.sync()
+			.then(()=>findAvail(availID))
+			.then((AvailObj)=>accessValidator(username, AvailObj))
+			.then((AvailObj)=>findMatches(AvailObj.username, AvailObj.dataValues.startTime, AvailObj.dataValues.endTime))
+			.then((matchList)=>ArrayConverter(matchList))
+			.then((completeData)=>resolve(completeData))
+			.catch((e)=>reject(e))
 	})
 }
 
 function findMatches(username, startTime, endTime){
 	return new Promise((resolve, reject)=>{
-		console.log("username", username, "ST", startTime, "ET", endTime)
 		db.sync().then(function(){
 			Availability.findAll({where: {
 					username: {
@@ -97,7 +68,6 @@ function ArrayConverter(arr){
 	return new Promise((resolve, reject)=>{
 		db.sync().then(function(){
 			async.map(arr, getUserProfileAvail,function(e, r){
-				console.log("heeeeeeeeeee")
 				if(r !== null){
 					resolve(r)
 				}else{
@@ -107,4 +77,5 @@ function ArrayConverter(arr){
 		})
 	})
 }
+
 

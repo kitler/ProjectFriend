@@ -2,15 +2,21 @@
 const Availability = {
 	overlappingAvailability: new Error("Overlapping availability"),
 	noMatchingAvailabilities: new Error("There was no matching times"),
+	couldNotFindAvailability: new Error("Could not find availability"),
 	nullInputDates: new Error("Start date nor end date cannot be null"),
 	endIsBeforeStart: new Error("End Date Cannot Be Before Start"),
-	unauthorizedAccess: new Error('User is not authorized to access this resource')
+	unauthorizedAccess: new Error('User is not authorized to access this resource'),
+	notFriendsWithUser: new Error("User is not friends with user")
 }
 
-
-exports.SuccessAvailability = {
-
+const Friends = {
+	friendRequestAlreadySent: new Error("User has already requested friends with person"),
+	userDoesNotExist: new Error("User does not exist"),
+	statusDoesNotMatch: new Error("Status must be Accept or Decline"),
+	requestNotFound: new Error("Friend request not found"),
+	noFriendsFound: new Error("No friends found for user")
 }
+
 
 const Auth = {
 	missingSignUpParameters: new Error('You must provide e-mail, username, name, and password'),
@@ -21,6 +27,7 @@ const Auth = {
 
 exports.Auth = Auth;
 exports.Availability = Availability;
+exports.Friends = Friends
 
 const errors422 = [
 	Auth.missingSignUpParameters,
@@ -29,7 +36,13 @@ const errors422 = [
 	Availability.overlappingAvailability,
 	Availability.noMatchingAvailabilities,
 	Availability.nullInputDates,
-	Availability.endIsBeforeStart
+	Availability.endIsBeforeStart,
+	Availability.couldNotFindAvailability,
+	Availability.notFriendsWithUser,
+	Friends.friendRequestAlreadySent,
+	Friends.userDoesNotExist,
+	Friends.statusDoesNotMatch,
+	Friends.requestNotFound
 ]
 
 const errors401 = [

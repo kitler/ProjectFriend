@@ -57,7 +57,6 @@ describe('Availability:', function () {
 				})
 				.expect(200)
 				.end((e, r)=>{
-					console.log(r)
 					done()
 				})
 		})
@@ -87,7 +86,6 @@ describe('Availability:', function () {
 			availUtil.removeTestRecord(username, testTimes.startDate1, testTimes.endDate1).then(()=>{
 				done()
 			}).catch((e)=>{
-				console.log("HEre21232", e)
 				done(e)
 			})
 		})
@@ -103,14 +101,11 @@ describe('Availability:', function () {
 				availUtil.addTestRecord(username3, testTimes.startDate2, testTimes.endDate2)
 			]).then(()=>{
 					availUtil.getMatchingCount(username, testTimes.startDate1, testTimes.endDate1).then((count)=>{
-						console.log("HER########")
 						availUtil.addTestRecord(username, testTimes.startDate1, testTimes.endDate1).then((res)=>{
-							console.log("HERRRR", res.id)
 				
 							availID = res.id
 							done()
 						})
-						console.log(count)
 						anticipatedCount = count;
 					}).catch((e)=>{
 						done(e)
@@ -120,19 +115,16 @@ describe('Availability:', function () {
 			})
 		})
 		it(':returns list of matching users and events', (done)=>{
-			let url = '/api/v1/api/v1/user/availability/'+availID+'/matches'
+			let url = '/api/v1/user/availability/'+availID+'/matches'
 			console.log(url)
-			console.log(availID)
 			request(server)
-				.get('api/v1/user/availability/'+availID+'/matches')
-				.set({authorization: user1Token})
+				.get(url)
+				.set({Authorization: user1Token})
 				.expect(200)
 				.end((e, r)=>{
 					if(e){
 						done(e)
 					}else{
-						console.log("645465465465465465456",r.body.data, "ty", typeof r.body.data)
-						let results = r.body.data
 						expect(r.body.data.length, "Array size incorrect").to.equal(anticipatedCount)
 						//expect(r.body.data[0].users).to.contain.a.thing.with.property('user')
 						//expect(deepObj).to.have.deep.property('green.tea', 'matcha')
@@ -143,7 +135,7 @@ describe('Availability:', function () {
 				//rejects users request when availID and logged in user do not match
 		})
 		after((done)=>{
-			/*Promise.all([
+			Promise.all([
 				availUtil.removeTestRecord(username, testTimes.startDate1, testTimes.endDate1),
 				availUtil.removeTestRecord(username2, testTimes.startDate2, testTimes.endDate2),
 				availUtil.removeTestRecord(username3, testTimes.startDate2, testTimes.endDate2)
@@ -151,19 +143,14 @@ describe('Availability:', function () {
 				done()
 			}).catch((e)=>{
 				done(e)
-			}) */
-			done()
+			}) 
 		})
 
 		it('rejects request when poorly formatted: incorrect dates, happened in past, etc',function(done){
 			request(server)
-				.post('/api/v1/api/v1/user/availability/'+null+'/matches')
+				.post('/api/v1/user/availability/'+null+'/matches')
 				.set({authorization: user1Token})
-				.send({
-					startTime: testTimes.endDate1,
-					endTime: testTimes.StartDate1,
-				})
-				.expect(422,errorMsgCreator(errors.endIsBeforeStart), done)
+				.expect(404, done)
 		})
 	})
 });

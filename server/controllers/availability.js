@@ -9,7 +9,7 @@ const requireAuth = passport.authenticate('jwt', {session: false});
 
 
 rt.get('/:availID/matches', requireAuth, (req, res, next)=>{
-	console.log(req.user)
+	console.log(req.user, req.params.availID)
 	availMatcher(req.user.username, req.params.availID).then((result)=>{
 		let resJson = responseCreator("success", result)
 		res.status(200)
